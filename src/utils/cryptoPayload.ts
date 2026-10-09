@@ -1,13 +1,12 @@
-import LZString from 'lz-string';
-
 /**
- * Optimizes and resizes an image on the client side before packaging,
- * ensuring fast link generation and lightweight URL payload.
+ * Native, zero-dependency client-side image compression & Base64 encoding.
+ * Eliminates all external package bundling/typing issues on Vercel.
  */
+
 export const compressImageForLink = (
   file: File,
-  maxWidth = 800,
-  maxHeight = 800,
+  maxWidth = 700,
+  maxHeight = 700,
   quality = 0.7
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -52,31 +51,39 @@ export const compressImageForLink = (
 };
 
 /**
- * Encodes the entire romantic gift state (including images and audio)
- * into a safe, compressed URL fragment.
+ * Standard Unicode-safe Base64 encoder (Native Web APIs only)
  */
 export const encodePayloadToHash = (data: any): string => {
-  const jsonString = JSON.stringify(data);
-  return LZString.compressToEncodedURIComponent(jsonString);
+  try {
+    const jsonString = JSON.stringify(data);
+    const utf8Bytes = new TextEncoder().encode(jsonString);
+    let binary = '';
+    const len = utf8Bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(utf8Bytes[i]);
+    }
+    return btoa(binary);
+  } catch (error) {
+    console.error('Encoding error:', error);
+    return '';
+  }
 };
 
 /**
- * Decodes the encrypted/compressed payload from the URL hash.
+ * Standard Unicode-safe Base64 decoder (Native Web APIs only)
  */
 export const decodePayloadFromHash = <T>(hashString: string): T | null => {
   try {
     const cleanHash = hashString.replace(/^#data=/, '').replace(/^#/, '');
     if (!cleanHash) return null;
 
-    // Try LZString compressed format first
-    const decompressed = LZString.decompressFromEncodedURIComponent(cleanHash);
-    if (decompressed) {
-      return JSON.parse(decompressed);
+    const binary = atob(cleanHash);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
     }
-
-    // Fallback for base64 legacy links
-    const decodedLegacy = JSON.parse(decodeURIComponent(escape(atob(cleanHash))));
-    return decodedLegacy;
+    const jsonString = new TextDecoder().decode(bytes);
+    return JSON.parse(jsonString);
   } catch (error) {
     console.error('Failed to decode payload from hash:', error);
     return null;
