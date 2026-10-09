@@ -161,7 +161,7 @@ export const defaultAnniversaryData: AnniversaryData = {
     "I love you",
     "Call me",
     "Take me there",
-    "You made me cry ",
+    "You made me cry 😭",
     "Come here"
   ],
   partnerPhoneNumber: ""
