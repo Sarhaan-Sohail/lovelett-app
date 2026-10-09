@@ -1,5 +1,6 @@
 import React from 'react';
 import type { AnniversaryData } from '../types/anniversary';
+import { MotionBackground } from './MotionBackground';
 import { RelationshipCounter } from './RelationshipCounter';
 import { LetterBox } from './LetterBox';
 import { PhotoFrame } from './PhotoFrame';
@@ -26,10 +27,12 @@ export const AnniversaryTemplate: React.FC<AnniversaryTemplateProps> = ({
   onUpdateAudio,
 }) => {
   return (
-    <div className="min-h-screen bg-[#230823] text-[#F7D1DC] py-12 px-4 sm:px-6 flex flex-col items-center selection:bg-[#F8C8D4] selection:text-[#2A0826]">
+    <div className="relative min-h-screen bg-[#1D061D] text-[#F7D1DC] py-12 px-4 sm:px-6 flex flex-col items-center selection:bg-[#F8C8D4] selection:text-[#2A0826] overflow-x-hidden">
+      {/* Dynamic Romantic Motion Background (Floating Hearts, Orbs & Sparkles) */}
+      <MotionBackground />
       
       {/* Container / Main Column */}
-      <main className="w-full max-w-2xl mx-auto flex flex-col items-center">
+      <main className="w-full max-w-2xl mx-auto flex flex-col items-center relative z-10">
         
         {/* Top Header Section */}
         <header className="text-center mb-8">
@@ -62,17 +65,21 @@ export const AnniversaryTemplate: React.FC<AnniversaryTemplateProps> = ({
           {/* Vertical Connecting Line */}
           <div className="absolute top-3 bottom-8 left-[11px] sm:left-[15px] w-[2px] bg-gradient-to-b from-[#E83D64] via-[#6C225B] to-[#F8C8D4]" />
 
-          {data.milestones.map((item) => (
-            <article key={item.id} className="relative flex flex-col gap-3 group">
-              {/* Timeline Bullet Node */}
-              <div className="absolute -left-[30px] sm:-left-[38px] top-1.5 w-4 h-4 rounded-full bg-[#E83D64] border-2 border-[#230823] shadow-[0_0_12px_rgba(232,61,100,0.8)] z-10 group-hover:scale-125 transition-transform" />
+          {data.milestones.map((item, index) => (
+            <article
+              key={item.id}
+              className="relative flex flex-col gap-3 group animate-fade-in-up"
+              style={{ animationDelay: `${index * 150}ms` }}
+            >
+              {/* Timeline Bullet Node with romantic pulsing glow */}
+              <div className="absolute -left-[30px] sm:-left-[38px] top-1.5 w-4 h-4 rounded-full bg-[#E83D64] border-2 border-[#230823] shadow-[0_0_14px_rgba(232,61,100,0.9)] z-10 group-hover:scale-125 transition-transform duration-300 animate-glow-node" />
 
               {/* Milestone Details */}
               <div className="flex flex-col">
                 <span className="text-xs tracking-wider uppercase font-semibold text-[#E83D64]">
                   {item.date}
                 </span>
-                <h3 className="font-serif-title text-xl sm:text-2xl font-semibold text-[#F7D1DC] mt-0.5 mb-1.5">
+                <h3 className="font-serif-title text-xl sm:text-2xl font-semibold text-[#F7D1DC] mt-0.5 mb-1.5 transition-colors group-hover:text-pink-200">
                   {item.title}
                 </h3>
                 <p className="text-xs sm:text-sm text-[#F7D1DC]/80 font-light leading-relaxed mb-4">
@@ -80,8 +87,8 @@ export const AnniversaryTemplate: React.FC<AnniversaryTemplateProps> = ({
                 </p>
               </div>
 
-              {/* Client-Side Self Serving Photo Placeholder */}
-              <div className="w-full max-w-xl">
+              {/* Client-Side Self Serving Photo Placeholder with hover elevation */}
+              <div className="w-full max-w-xl transition-transform duration-300 group-hover:-translate-y-1">
                 <PhotoFrame
                   image={item.image}
                   placeholderText={item.placeholderText}
