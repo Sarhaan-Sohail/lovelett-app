@@ -4,36 +4,63 @@ import { defaultAnniversaryData } from './types/anniversary';
 import { ROMANTIC_SONG_PRESETS } from './types/songs';
 import { AnniversaryTemplate } from './components/AnniversaryTemplate';
 import { encodePayloadToHash, decodePayloadFromHash } from './utils/cryptoPayload';
-import { Edit3, Eye, Share2, Sparkles, Phone, Music, Plus, Check, Heart, BookOpen, Trash2 } from 'lucide-react';
+import { saveGiftToShortLink, loadGiftFromShortLink } from './utils/shortLinkVault';
+import { Edit3, Eye, Share2, Sparkles, Phone, Music, Plus, Check, Heart, BookOpen, Trash2, Loader2 } from 'lucide-react';
 
 export function App() {
-  const [data, setData] = useState<AnniversaryData>(() => {
-    try {
-      // Decode full encrypted gift payload (including photos) directly from URL hash
-      if (window.location.hash) {
-        const decoded = decodePayloadFromHash<AnniversaryData>(window.location.hash);
-        if (decoded) {
-          return { ...defaultAnniversaryData, ...decoded };
-        }
-      }
-      const saved = localStorage.getItem('lovelett_anniversary_data');
-      if (saved) return { ...defaultAnniversaryData, ...JSON.parse(saved) };
-    } catch {
-      // Fallback
-    }
-    return defaultAnniversaryData;
-  });
-
+  const [data, setData] = useState<AnniversaryData>(defaultAnniversaryData);
+  const [isLoadingGift, setIsLoadingGift] = useState<boolean>(true);
+  const [isGeneratingLink, setIsGeneratingLink] = useState<boolean>(false);
   const [mode, setMode] = useState<'preview' | 'edit'>('preview');
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Load Gift on startup (Supports: #id=shortCode, #data=hash, or localStorage)
+  useEffect(() => {
+    const initData = async () => {
+      try {
+        const hash = window.location.hash;
+        if (hash.includes('id=')) {
+          const id = hash.split('id=')[1]?.split('&')[0];
+          if (id) {
+            const remoteData = await loadGiftFromShortLink(id);
+            if (remoteData) {
+              setData({ ...defaultAnniversaryData, ...remoteData });
+              setIsLoadingGift(false);
+              return;
+            }
+          }
+        } else if (hash.includes('data=')) {
+          const decoded = decodePayloadFromHash<AnniversaryData>(hash);
+          if (decoded) {
+            setData({ ...defaultAnniversaryData, ...decoded });
+            setIsLoadingGift(false);
+            return;
+          }
+        }
+
+        const saved = localStorage.getItem('lovelett_anniversary_data');
+        if (saved) {
+          setData({ ...defaultAnniversaryData, ...JSON.parse(saved) });
+        }
+      } catch (err) {
+        console.error('Failed to load gift:', err);
+      } finally {
+        setIsLoadingGift(false);
+      }
+    };
+
+    initData();
+  }, []);
+
   useEffect(() => {
     try {
-      localStorage.setItem('lovelett_anniversary_data', JSON.stringify(data));
+      if (!isLoadingGift) {
+        localStorage.setItem('lovelett_anniversary_data', JSON.stringify(data));
+      }
     } catch {
-      // Storage quota or privacy mode handled
+      // Storage quota handled
     }
-  }, [data]);
+  }, [data, isLoadingGift]);
 
   const handleUpdateMilestoneImage = (milestoneId: string, dataUrl: string | undefined) => {
     setData((prev) => ({
@@ -102,17 +129,25 @@ export function App() {
     });
   };
 
-  const handleShareLink = () => {
+  const handleShareLink = async () => {
     try {
-      // Compress and package the entire gift (including photos, letters, memories, and audio settings)
-      const encoded = encodePayloadToHash(data);
-      const shareUrl = `${window.location.origin}${window.location.pathname}#data=${encoded}`;
+      setIsGeneratingLink(true);
+      // Save gift and get a short 6-char link ID
+      const shortId = await saveGiftToShortLink(data);
+      const shareUrl = `${window.location.origin}${window.location.pathname}#id=${shortId}`;
       
       navigator.clipboard.writeText(shareUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 3000);
     } catch (err) {
-      console.error('Error generating link:', err);
+      console.error('Error generating short link, fallback to hash:', err);
+      const encoded = encodePayloadToHash(data);
+      const shareUrl = `${window.location.origin}${window.location.pathname}#data=${encoded}`;
+      navigator.clipboard.writeText(shareUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 3000);
+    } finally {
+      setIsGeneratingLink(false);
     }
   };
 
@@ -149,13 +184,19 @@ export function App() {
 
           <button
             type="button"
+            disabled={isGeneratingLink}
             onClick={handleShareLink}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#E83D64] hover:bg-[#FF4B72] text-white transition-all shadow-md active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#E83D64] hover:bg-[#FF4B72] disabled:opacity-75 text-white transition-all shadow-md active:scale-95 cursor-pointer"
           >
-            {copiedLink ? (
+            {isGeneratingLink ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                <span>Creating Short Link...</span>
+              </>
+            ) : copiedLink ? (
               <>
                 <Check size={14} />
-                <span>Link Copied!</span>
+                <span>Short Link Copied!</span>
               </>
             ) : (
               <>
