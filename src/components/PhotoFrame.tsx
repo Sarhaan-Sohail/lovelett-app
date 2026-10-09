@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
-import { Camera, Image as ImageIcon, Trash2, ShieldCheck } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Camera, Image as ImageIcon, Trash2, ShieldCheck, Loader2 } from 'lucide-react';
+import { compressImageForLink } from '../utils/cryptoPayload';
 
 interface PhotoFrameProps {
   image?: string;
@@ -15,18 +16,22 @@ export const PhotoFrame: React.FC<PhotoFrameProps> = ({
   isEditable = true,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Direct in-browser local client-side read (zero upload to server/backend)
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
-      onImageChange(result);
-    };
-    reader.readAsDataURL(file);
+    try {
+      setIsProcessing(true);
+      // Compress and optimize directly in browser for seamless link sharing
+      const compressedDataUrl = await compressImageForLink(file, 700, 700, 0.75);
+      onImageChange(compressedDataUrl);
+    } catch (err) {
+      console.error('Error reading image:', err);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleRemove = (e: React.MouseEvent) => {
@@ -45,7 +50,12 @@ export const PhotoFrame: React.FC<PhotoFrameProps> = ({
         className="hidden"
       />
 
-      {image ? (
+      {isProcessing ? (
+        <div className="flex flex-col items-center justify-center p-6 text-center">
+          <Loader2 className="animate-spin text-[#E83D64] mb-2" size={24} />
+          <span className="text-xs text-[#F7D1DC]/70">Optimizing for encrypted link...</span>
+        </div>
+      ) : image ? (
         <div className="relative w-full h-full min-h-[220px] sm:min-h-[260px]">
           <img
             src={image}
