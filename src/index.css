@@ -71,3 +71,8 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #6C225B;
 }
+@layer utilities {
+  .font-emoji {
+    font-family: 'Noto Color Emoji', sans-serif;
+  }
+}
