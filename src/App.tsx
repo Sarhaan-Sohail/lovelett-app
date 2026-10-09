@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { AnniversaryData } from './types/anniversary';
 import { defaultAnniversaryData } from './types/anniversary';
+import { ROMANTIC_SONG_PRESETS } from './types/songs';
 import { AnniversaryTemplate } from './components/AnniversaryTemplate';
 import { Edit3, Eye, Share2, Sparkles, Phone, Music, Plus, Check, Heart, BookOpen, Trash2 } from 'lucide-react';
 
@@ -257,31 +258,103 @@ export function App() {
               ))}
             </div>
 
-            {/* Song details */}
-            <div className="pt-2 border-t border-[#4A163E]">
-              <div className="flex items-center gap-2 mb-3">
-                <Music size={16} className="text-[#E83D64]" />
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-white">Our Song</h3>
+            {/* Song details & Audio Chooser */}
+            <div className="pt-2 border-t border-[#4A163E] space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Music size={16} className="text-[#E83D64]" />
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-white">Our Song (Soundtrack)</h3>
+                </div>
+                {data.audioUrl && (
+                  <span className="text-[11px] text-pink-300 bg-[#E83D64]/20 border border-[#E83D64]/40 px-2 py-0.5 rounded-full font-medium">
+                    Custom Audio Active
+                  </span>
+                )}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              {/* Quick Romantic Music Presets */}
+              <div>
+                <label className="block text-xs text-[#F7D1DC]/70 mb-2 font-medium">
+                  Choose a Romantic Preset or Upload Your Own:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {ROMANTIC_SONG_PRESETS.map((preset) => {
+                    const isSelected = data.audioUrl === preset.audioUrl || (!data.audioUrl && preset.id === 'acoustic-love');
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setData((prev) => ({
+                            ...prev,
+                            songTitle: preset.title,
+                            songArtist: preset.artist,
+                            audioUrl: preset.audioUrl,
+                          }));
+                        }}
+                        className={`p-2.5 rounded-xl text-left border transition-all text-xs flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-[#E83D64]/20 border-[#E83D64] text-white font-semibold shadow-md'
+                            : 'bg-[#230823] border-[#5E204E] text-[#F7D1DC]/80 hover:bg-[#3B1231]'
+                        }`}
+                      >
+                        <span className="truncate">{preset.title}</span>
+                        <span className="text-[10px] text-[#F7D1DC]/50 truncate font-normal">
+                          {preset.artist}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Title & Artist custom text */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-[#F7D1DC]/70 mb-1">Song Title</label>
+                  <label className="block text-xs text-[#F7D1DC]/70 mb-1">Display Title</label>
                   <input
                     type="text"
                     value={data.songTitle}
                     onChange={(e) => handleUpdateField('songTitle', e.target.value)}
-                    className="w-full bg-[#230823] border border-[#5E204E] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#E83D64]"
+                    className="w-full bg-[#230823] border border-[#5E204E] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#E83D64]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-[#F7D1DC]/70 mb-1">Artist Name</label>
+                  <label className="block text-xs text-[#F7D1DC]/70 mb-1">Display Artist</label>
                   <input
                     type="text"
                     value={data.songArtist}
                     onChange={(e) => handleUpdateField('songArtist', e.target.value)}
-                    className="w-full bg-[#230823] border border-[#5E204E] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#E83D64]"
+                    className="w-full bg-[#230823] border border-[#5E204E] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#E83D64]"
                   />
                 </div>
+              </div>
+
+              {/* Direct Audio MP3 file upload or custom URL */}
+              <div className="bg-[#230823] border border-[#5E204E] rounded-2xl p-3.5 space-y-2">
+                <label className="block text-xs font-semibold text-white">
+                  Upload Any MP3 / Audio File Directly from your Computer/Phone:
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const dataUrl = event.target?.result as string;
+                        handleUpdateAudio(dataUrl);
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                    className="text-xs text-[#F7D1DC]/70 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#E83D64] file:text-white hover:file:bg-[#FF4B72] file:cursor-pointer cursor-pointer"
+                  />
+                </div>
+                <p className="text-[11px] text-[#F7D1DC]/50">
+                  You can upload any song file (e.g. Taylor Swift, Ed Sheeran, your own recorded voice note, or any MP3).
+                </p>
               </div>
             </div>
 
