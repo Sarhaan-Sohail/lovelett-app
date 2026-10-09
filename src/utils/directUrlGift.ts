@@ -1,8 +1,9 @@
-import LZString from 'lz-string';
-
 /**
- * 1. Compress image to a compact size suitable for instant URL transmission
+ * 100% Zero-Dependency Browser-Native Gift Packer & Unpacker
+ * Uses HTML5 Canvas + Native TextEncoder/TextDecoder + URL-safe Base64
+ * Eliminates all external dependencies and TypeScript typing errors on Vercel.
  */
+
 export const compressImageToUrlData = (
   file: File,
   maxDimension = 420,
@@ -38,7 +39,6 @@ export const compressImageToUrlData = (
         }
 
         ctx.drawImage(img, 0, 0, width, height);
-        // Use efficient JPEG compression
         const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
         resolve(compressedDataUrl);
       };
@@ -51,13 +51,18 @@ export const compressImageToUrlData = (
 };
 
 /**
- * 2. Compresses the entire data payload into a clean, working URL string with LZString
+ * Packs the gift payload into a URL-safe string using native browser APIs
  */
 export const packGiftToUrl = (data: any): string => {
   try {
-    const json = JSON.stringify(data);
-    const compressed = LZString.compressToEncodedURIComponent(json);
-    return compressed;
+    const jsonString = JSON.stringify(data);
+    const utf8Bytes = new TextEncoder().encode(jsonString);
+    let binary = '';
+    const len = utf8Bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(utf8Bytes[i]);
+    }
+    return encodeURIComponent(btoa(binary));
   } catch (err) {
     console.error('Error packing gift:', err);
     return '';
@@ -65,7 +70,7 @@ export const packGiftToUrl = (data: any): string => {
 };
 
 /**
- * 3. Unpacks the gift from URL with zero network latency
+ * Unpacks the gift payload from URL using native browser APIs
  */
 export const unpackGiftFromUrl = <T>(hashOrSearch: string): T | null => {
   try {
@@ -78,20 +83,16 @@ export const unpackGiftFromUrl = <T>(hashOrSearch: string): T | null => {
 
     if (!clean) return null;
 
-    // LZString decompression
-    const json = LZString.decompressFromEncodedURIComponent(clean);
-    if (json) {
-      return JSON.parse(json);
-    }
-
-    // Fallback: Unicode JSON parser
-    const binary = atob(clean);
+    const decodedUri = decodeURIComponent(clean);
+    const binary = atob(decodedUri);
     const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    const decoded = new TextDecoder().decode(bytes);
-    return JSON.parse(decoded);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    const jsonString = new TextDecoder().decode(bytes);
+    return JSON.parse(jsonString);
   } catch (err) {
-    console.error('Error unpacking gift:', err);
+    console.error('Error unpacking gift from URL:', err);
     return null;
   }
 };
