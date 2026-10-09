@@ -56,7 +56,7 @@ export const ReplySection: React.FC<ReplySectionProps> = ({
   return (
     <div className="w-full max-w-xl mx-auto mt-14 bg-[#F8C8D4] text-[#2A0826] rounded-3xl p-6 sm:p-8 shadow-2xl transition-all">
       <h3 className="font-script text-3xl sm:text-4xl text-center mb-1 font-bold">
-        Send {hisName ? `[${hisName}]` : 'him'} your reply
+        Send {hisName ? `${hisName}` : 'him'} your reply
       </h3>
       <p className="text-center text-xs sm:text-sm text-[#2A0826]/75 mb-6">
         Tell him what this story means to you. He will see it privately.
@@ -112,7 +112,7 @@ export const ReplySection: React.FC<ReplySectionProps> = ({
           ) : (
             <>
               <Send size={15} />
-              <span>Send to {hisName ? `[${hisName}]` : 'him'}</span>
+              <span>Send to {hisName ? `${hisName}` : 'him'}</span>
             </>
           )}
         </button>
@@ -129,7 +129,7 @@ export const ReplySection: React.FC<ReplySectionProps> = ({
 
       <div className="mt-6 pt-4 border-t border-[#2A0826]/10 text-center">
         <p className="text-[11px] text-[#2A0826]/60">
-          Private: encrypted on your phone, so only {hisName ? `[${hisName}]` : 'he'} can read it.
+          Private: encrypted on your phone, so only {hisName ? `${hisName}` : 'he'} can read it.
         </p>
       </div>
     </div>
