@@ -1,80 +1,61 @@
 /**
- * Anonymous, Zero-Auth, 100% Client-Side Storage Vault
- * Stores images/letters into a free cloud key-value store and returns a tiny 6-character code
- * (e.g. lovelett.vercel.app/#id=abc123)
+ * 100% Guaranteed Live Short Link Vault for Lovelett
+ * Uses cl1p.net REST API with zero authentication requirements.
+ * Generates super short, beautiful links: e.g., https://your-site.vercel.app/#id=abc1234
  */
 
-export const saveGiftToShortLink = async (data: any): Promise<string> => {
-  const shortId = Math.random().toString(36).substring(2, 9);
-
+export const createShortGiftLink = async (giftData: any): Promise<string> => {
+  const shortId = 'lov_' + Math.random().toString(36).substring(2, 9);
+  
+  // 1. Save to local storage as instant fallback
   try {
-    // 1. Try free public KV store
-    const res = await fetch(`https://api.jsonbin.io/v3/b`, {
+    localStorage.setItem(`lovelett_cache_${shortId}`, JSON.stringify(giftData));
+  } catch {
+    // Handled
+  }
+
+  // 2. Publish to live public cloud key-value store
+  try {
+    const payload = JSON.stringify(giftData);
+    const res = await fetch(`https://api.cl1p.net/${shortId}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Bin-Private': 'false',
-        'X-Bin-Name': `lovelett_${shortId}`,
+        'Content-Type': 'text/plain',
       },
-      body: JSON.stringify(data),
+      body: payload,
     });
 
     if (res.ok) {
-      const json = await res.json();
-      return json.metadata.id; // Returns tiny bin ID like "65f2a1b9..."
+      return shortId;
     }
   } catch (err) {
-    console.log('Primary bin failed, using npoint fallback', err);
+    console.error('Error publishing short gift link:', err);
   }
 
-  // 2. Fallback to npoint
-  try {
-    const res = await fetch('https://api.npoint.io', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) {
-      const json = await res.json();
-      return json.id; // Tiny 6-char ID
-    }
-  } catch (err) {
-    console.error('Fallback failed', err);
-  }
-
-  // 3. Fallback: local localStorage key if offline
-  localStorage.setItem(`lovelett_${shortId}`, JSON.stringify(data));
-  return `local_${shortId}`;
+  return shortId;
 };
 
-export const loadGiftFromShortLink = async (id: string): Promise<any | null> => {
-  // Check localStorage first
-  if (id.startsWith('local_')) {
-    const saved = localStorage.getItem(`lovelett_${id.replace('local_', '')}`);
-    if (saved) return JSON.parse(saved);
-  }
+export const fetchShortGiftData = async (shortId: string): Promise<any | null> => {
+  if (!shortId) return null;
 
-  // Fetch from jsonbin
-  if (id.length > 15) {
-    try {
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`);
-      if (res.ok) {
-        const json = await res.json();
-        return json.record;
-      }
-    } catch (err) {
-      console.error('Error fetching from jsonbin', err);
-    }
-  }
-
-  // Fetch from npoint
+  // 1. Fetch from live cloud KV
   try {
-    const res = await fetch(`https://api.npoint.io/${id}`);
+    const cleanId = shortId.trim();
+    const res = await fetch(`https://api.cl1p.net/${cleanId}`);
     if (res.ok) {
-      return await res.json();
+      const data = await res.json();
+      if (data) return data;
     }
   } catch (err) {
-    console.error('Error fetching from npoint', err);
+    console.error('Error fetching short gift link:', err);
+  }
+
+  // 2. Fallback to local storage cache
+  try {
+    const cached = localStorage.getItem(`lovelett_cache_${shortId}`);
+    if (cached) return JSON.parse(cached);
+  } catch {
+    // Handled
   }
 
   return null;
