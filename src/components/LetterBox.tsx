@@ -9,9 +9,9 @@ interface LetterBoxProps {
 
 export const LetterBox: React.FC<LetterBoxProps> = ({ headline, paragraphs, hisName }) => {
   return (
-    <div className="w-full max-w-2xl mx-auto my-12 bg-[#F8C8D4] text-[#2A0826] rounded-3xl p-7 sm:p-10 shadow-2xl relative overflow-hidden">
-      {/* Decorative top accent */}
-      <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FFB3C6]/40 rounded-full blur-2xl pointer-events-none" />
+    <div className="w-full max-w-2xl mx-auto my-12 bg-[#F8C8D4] text-[#2A0826] rounded-3xl p-7 sm:p-10 shadow-2xl relative overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(248,200,212,0.25)] animate-fade-in-up">
+      {/* Decorative top accent with gentle glow */}
+      <div className="absolute -top-10 -right-10 w-36 h-36 bg-[#FFB3C6]/50 rounded-full blur-2xl pointer-events-none animate-pulse" />
 
       <div className="flex items-center justify-between mb-6 border-b border-[#2A0826]/15 pb-4">
         <h2 className="font-serif-title text-2xl sm:text-3xl font-bold text-[#2A0826]">
