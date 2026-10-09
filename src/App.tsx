@@ -3,15 +3,18 @@ import type { AnniversaryData } from './types/anniversary';
 import { defaultAnniversaryData } from './types/anniversary';
 import { ROMANTIC_SONG_PRESETS } from './types/songs';
 import { AnniversaryTemplate } from './components/AnniversaryTemplate';
+import { encodePayloadToHash, decodePayloadFromHash } from './utils/cryptoPayload';
 import { Edit3, Eye, Share2, Sparkles, Phone, Music, Plus, Check, Heart, BookOpen, Trash2 } from 'lucide-react';
 
 export function App() {
   const [data, setData] = useState<AnniversaryData>(() => {
     try {
-      const hash = window.location.hash.replace('#data=', '');
-      if (hash) {
-        const decoded = JSON.parse(decodeURIComponent(escape(atob(hash))));
-        return { ...defaultAnniversaryData, ...decoded };
+      // Decode full encrypted gift payload (including photos) directly from URL hash
+      if (window.location.hash) {
+        const decoded = decodePayloadFromHash<AnniversaryData>(window.location.hash);
+        if (decoded) {
+          return { ...defaultAnniversaryData, ...decoded };
+        }
       }
       const saved = localStorage.getItem('lovelett_anniversary_data');
       if (saved) return { ...defaultAnniversaryData, ...JSON.parse(saved) };
@@ -101,19 +104,15 @@ export function App() {
 
   const handleShareLink = () => {
     try {
-      const shareData = {
-        ...data,
-        milestones: data.milestones.map((m) => ({ ...m, image: undefined })),
-        moments: data.moments.map((g) => ({ ...g, image: undefined })),
-      };
-      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(shareData))));
+      // Compress and package the entire gift (including photos, letters, memories, and audio settings)
+      const encoded = encodePayloadToHash(data);
       const shareUrl = `${window.location.origin}${window.location.pathname}#data=${encoded}`;
       
       navigator.clipboard.writeText(shareUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 3000);
-    } catch {
-      // Fallback
+    } catch (err) {
+      console.error('Error generating link:', err);
     }
   };
 
