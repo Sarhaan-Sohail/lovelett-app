@@ -1,4 +1,4 @@
-declare module '@fontsource/noto-color-emoji';
+
 export interface Milestone {
   id: string;
   date: string;
