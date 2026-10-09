@@ -63,7 +63,7 @@ export const ReplySection: React.FC<ReplySectionProps> = ({
       </p>
 
       {/* Quick Reaction Pills */}
-      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mb-5">
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mb-5 font-emoji text-purple-950">
         {quickReactions.map((reaction, idx) => {
           const isSelected = selectedReaction === reaction;
           return (
