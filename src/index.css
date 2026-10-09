@@ -74,9 +74,3 @@
 .font-emoji {
   font-family: 'Noto Color Emoji', sans-serif !important;
 }
-
-@layer utilities {
-  .font-emoji {
-    font-family: 'Noto Color Emoji', sans-serif;
-  }
-}
