@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Camera, Image as ImageIcon, Trash2, ShieldCheck, Loader2 } from 'lucide-react';
-import { compressImageToUrlData } from '../utils/directUrlGift';
+import { compressImageForInstantLink } from '../utils/foolproofGiftEngine';
 
 interface PhotoFrameProps {
   image?: string;
@@ -24,8 +24,8 @@ export const PhotoFrame: React.FC<PhotoFrameProps> = ({
 
     try {
       setIsProcessing(true);
-      // Fast, lightweight client-side photo optimization
-      const compressedDataUrl = await compressImageToUrlData(file, 450, 0.6);
+      // Client-side high-compression photo encoder
+      const compressedDataUrl = await compressImageForInstantLink(file, 450, 0.65);
       onImageChange(compressedDataUrl);
     } catch (err) {
       console.error('Error reading image:', err);
