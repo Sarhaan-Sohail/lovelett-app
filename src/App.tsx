@@ -3,56 +3,37 @@ import type { AnniversaryData } from './types/anniversary';
 import { defaultAnniversaryData } from './types/anniversary';
 import { ROMANTIC_SONG_PRESETS } from './types/songs';
 import { AnniversaryTemplate } from './components/AnniversaryTemplate';
-import { packGiftToUrl, unpackGiftFromUrl } from './utils/directUrlGift';
-import { createShortGiftLink, fetchShortGiftData } from './utils/shortLinkService';
+import { createShortLinkOrFallback, loadGiftFromShortLinkOrUrl } from './utils/shortLinkAdapter';
 import { Edit3, Eye, Share2, Sparkles, Phone, Music, Plus, Check, Heart, BookOpen, Trash2, Loader2 } from 'lucide-react';
 
 export function App() {
   const [data, setData] = useState<AnniversaryData>(defaultAnniversaryData);
   const [isRecipientView, setIsRecipientView] = useState<boolean>(false);
-  const [isGeneratingShortLink, setIsGeneratingShortLink] = useState<boolean>(false);
+  const [isPackingGift, setIsPackingGift] = useState<boolean>(false);
   const [mode, setMode] = useState<'preview' | 'edit'>('preview');
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Dual-mode Gift Loading: Supports short #id=xxx and direct #gift=xxx
+  // 100% Reliable In-Browser Short Link & Gift Loading
   useEffect(() => {
     const loadGift = async () => {
       const rawHash = window.location.hash || window.location.search;
-      if (!rawHash) {
-        // Load creator draft from localStorage
-        const saved = localStorage.getItem('lovelett_anniversary_data');
-        if (saved) {
-          try {
-            setData({ ...defaultAnniversaryData, ...JSON.parse(saved) });
-          } catch (e) {
-            console.error(e);
-          }
-        }
-        return;
-      }
-
-      // 1. Check for Short Link (#id=abc123)
-      if (rawHash.includes('id=')) {
-        const shortId = rawHash.split('id=')[1]?.split('&')[0];
-        if (shortId) {
-          const remoteGift = await fetchShortGiftData(shortId);
-          if (remoteGift) {
-            setData({ ...defaultAnniversaryData, ...remoteGift });
-            setIsRecipientView(true);
-            setMode('preview');
-            return;
-          }
-        }
-      }
-
-      // 2. Check for Direct Encrypted URL (#gift=xxx)
-      if (rawHash.includes('gift=') || rawHash.length > 10) {
-        const unpacked = unpackGiftFromUrl<AnniversaryData>(rawHash);
-        if (unpacked) {
-          setData({ ...defaultAnniversaryData, ...unpacked });
+      if (rawHash && rawHash.length > 2) {
+        const gift = await loadGiftFromShortLinkOrUrl(rawHash);
+        if (gift && gift.herName) {
+          setData({ ...defaultAnniversaryData, ...gift });
           setIsRecipientView(true);
           setMode('preview');
           return;
+        }
+      }
+
+      // Creator's local draft
+      const saved = localStorage.getItem('lovelett_anniversary_data');
+      if (saved) {
+        try {
+          setData({ ...defaultAnniversaryData, ...JSON.parse(saved) });
+        } catch (e) {
+          console.error(e);
         }
       }
     };
@@ -140,23 +121,17 @@ export function App() {
 
   const handleShareLink = async () => {
     try {
-      setIsGeneratingShortLink(true);
-      // 1. Generate short link ID
-      const shortId = await createShortGiftLink(data);
-      const shortUrl = `${window.location.origin}${window.location.pathname}#id=${shortId}`;
+      setIsPackingGift(true);
+      const { urlParam } = await createShortLinkOrFallback(data);
+      const shareUrl = `${window.location.origin}${window.location.pathname}${urlParam}`;
       
-      navigator.clipboard.writeText(shortUrl);
+      await navigator.clipboard.writeText(shareUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 3500);
     } catch (err) {
-      console.error('Error generating short link, using packed URL:', err);
-      const packed = packGiftToUrl(data);
-      const fallbackUrl = `${window.location.origin}${window.location.pathname}#gift=${packed}`;
-      navigator.clipboard.writeText(fallbackUrl);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 3500);
+      console.error('Error generating gift link:', err);
     } finally {
-      setIsGeneratingShortLink(false);
+      setIsPackingGift(false);
     }
   };
 
@@ -193,24 +168,24 @@ export function App() {
 
           <button
             type="button"
-            disabled={isGeneratingShortLink}
+            disabled={isPackingGift}
             onClick={handleShareLink}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#E83D64] hover:bg-[#FF4B72] disabled:opacity-75 text-white transition-all shadow-md active:scale-95 cursor-pointer"
           >
-            {isGeneratingShortLink ? (
+            {isPackingGift ? (
               <>
                 <Loader2 size={14} className="animate-spin" />
-                <span>Creating Short Link...</span>
+                <span>Packing Gift Link...</span>
               </>
             ) : copiedLink ? (
               <>
                 <Check size={14} />
-                <span>Short Link Copied!</span>
+                <span>Gift Link Copied!</span>
               </>
             ) : (
               <>
                 <Share2 size={14} />
-                <span>Share Short Link</span>
+                <span>Share Gift Link</span>
               </>
             )}
           </button>
