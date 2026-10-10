@@ -56,13 +56,13 @@ export interface AnniversaryData {
 }
 
 export const defaultAnniversaryData: AnniversaryData = {
-  herName: "Elena",
-  hisName: "Julian",
+  herName: "Ayra",
+  hisName: "Ibrahim",
   yearSpan: "2021 TO TODAY",
   startDate: "2021-10-14",
   heroIntro: "A little story of us, and how you became my entire world.",
   
-  letterHeadline: "Happy anniversary, Elena",
+  letterHeadline: "Happy anniversary, Ibrahim",
   letterParagraphs: [
     "Looking back at everything we've shared, today reminds me of just how lucky I am. You walked into my life with your gentle smile and effortless grace, turning everyday moments into unforgettable memories.",
     "From late-night diner runs and road trips where we lost our way, to quiet evenings just holding hands on the couch—every second spent by your side is my favorite place to be.",
@@ -152,7 +152,7 @@ export const defaultAnniversaryData: AnniversaryData = {
     }
   ],
 
-  closingTitle: "Happy anniversary, Elena",
+  closingTitle: "Happy anniversary, Ayra",
   closingNote: "Here is to forever with you — through every laugh, every adventure, and everything still to come.",
   songTitle: "Lover",
   songArtist: "Taylor Swift",
