@@ -62,7 +62,7 @@ export const defaultAnniversaryData: AnniversaryData = {
   startDate: "2021-10-14",
   heroIntro: "A little story of us, and how you became my entire world.",
   
-  letterHeadline: "Happy anniversary, Ibrahim",
+  letterHeadline: "Happy anniversary, Ayra",
   letterParagraphs: [
     "Looking back at everything we've shared, today reminds me of just how lucky I am. You walked into my life with your gentle smile and effortless grace, turning everyday moments into unforgettable memories.",
     "From late-night diner runs and road trips where we lost our way, to quiet evenings just holding hands on the couch—every second spent by your side is my favorite place to be.",
