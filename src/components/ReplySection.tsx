@@ -1,40 +1,112 @@
-import React from 'react';
-import { HeartHandshake } from 'lucide-react';
+import React, { useState } from 'react';
+import { MessageCircle } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
-interface LetterBoxProps {
-  headline: string;
-  paragraphs: string[];
+interface ReplySectionProps {
   hisName: string;
+  quickReactions: string[];
+  partnerPhoneNumber?: string;
 }
 
-export const LetterBox: React.FC<LetterBoxProps> = ({ headline, paragraphs, hisName }) => {
+export const ReplySection: React.FC<ReplySectionProps> = ({
+  hisName,
+  quickReactions,
+  partnerPhoneNumber = "",
+}) => {
+  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
+  const [customMessage, setCustomMessage] = useState("");
+
+  const handleSelectReaction = (reaction: string) => {
+    setSelectedReaction((prev) => (prev === reaction ? null : reaction));
+  };
+
+  const triggerCelebration = () => {
+    confetti({
+      particleCount: 70,
+      spread: 60,
+      origin: { y: 0.85 },
+      colors: ['#F7D1DC', '#E83D64', '#FFB3C6', '#FFFFFF']
+    });
+  };
+
+
+  const handleWhatsAppSend = () => {
+    const textParts = [
+      `💌 *Lovelett Reply for ${hisName}*`,
+      selectedReaction ? `*Feeling:* ${selectedReaction}` : null,
+      customMessage.trim() ? `*Message:* ${customMessage}` : null,
+    ].filter(Boolean);
+
+    const encodedText = encodeURIComponent(textParts.join("\n\n"));
+    const cleanPhone = partnerPhoneNumber.replace(/[^0-9]/g, "");
+    const waUrl = cleanPhone 
+      ? `https://wa.me/${cleanPhone}?text=${encodedText}` 
+      : `https://wa.me/?text=${encodedText}`;
+
+    triggerCelebration();
+    window.open(waUrl, "_blank");
+  };
+
   return (
-    <div className="w-full max-w-2xl mx-auto my-12 bg-[#F8C8D4] text-[#2A0826] rounded-3xl p-7 sm:p-10 shadow-2xl relative overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(248,200,212,0.25)] animate-fade-in-up">
-      {/* Decorative top accent with gentle glow */}
-      <div className="absolute -top-10 -right-10 w-36 h-36 bg-[#FFB3C6]/50 rounded-full blur-2xl pointer-events-none animate-pulse" />
+    <div className="w-full max-w-xl mx-auto mt-14 bg-[#F8C8D4] text-[#2A0826] rounded-3xl p-6 sm:p-8 shadow-2xl transition-all">
+      <h3 className="font-script text-3xl sm:text-4xl text-center mb-1 font-bold">
+        Send {hisName ? `${hisName}` : 'him'} your reply
+      </h3>
+      <p className="text-center text-xs sm:text-sm text-[#2A0826]/75 mb-6">
+        Tell him what this story means to you. He will see it privately.
+      </p>
 
-      <div className="flex items-center justify-between mb-6 border-b border-[#2A0826]/15 pb-4">
-        <h2 className="font-serif-title text-2xl sm:text-3xl font-bold text-[#2A0826]">
-          {headline}
-        </h2>
-        <HeartHandshake size={24} className="text-[#2A0826]/60 shrink-0" />
+      {/* Quick Reaction Pills */}
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mb-5 font-emoji text-purple-950">
+        {quickReactions.map((reaction, idx) => {
+          const isSelected = selectedReaction === reaction;
+          return (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => handleSelectReaction(reaction)}
+              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 border ${
+                isSelected
+                  ? 'bg-[#2A0826] text-[#F8C8D4] border-[#2A0826] shadow-md scale-105'
+                  : 'bg-transparent text-[#2A0826] border-[#2A0826]/30 hover:border-[#2A0826] hover:bg-white/20'
+              }`}
+            >
+              {reaction}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="space-y-4 text-sm sm:text-base leading-relaxed text-[#2A0826]/85 font-light">
-        {paragraphs.map((p, idx) => (
-          <p key={idx} className="indent-4 sm:indent-6">
-            {p}
-          </p>
-        ))}
+      {/* Optional Custom Message Area */}
+      <div className="mb-6">
+        <label className="block text-xs font-semibold text-[#2A0826]/70 mb-2 pl-1">
+          Add a message (optional)
+        </label>
+        <textarea
+          value={customMessage}
+          onChange={(e) => setCustomMessage(e.target.value)}
+          placeholder="Write anything you want him to know..."
+          rows={3}
+          className="w-full bg-white/70 focus:bg-white border border-[#2A0826]/20 rounded-2xl p-3.5 text-sm text-[#2A0826] placeholder-[#2A0826]/40 focus:outline-none focus:ring-2 focus:ring-[#2A0826]/30 transition-all resize-none shadow-sm"
+        />
       </div>
 
-      <div className="mt-8 pt-4 flex flex-col items-end">
-        <span className="text-xs uppercase tracking-widest text-[#2A0826]/60 font-semibold mb-1">
-          With all my love,
-        </span>
-        <span className="font-script text-3xl sm:text-4xl font-bold text-[#2A0826]">
-          {hisName}
-        </span>
+      {/* Primary WhatsApp Send Button */}
+      <div className="flex flex-col items-center">
+        <button
+          type="button"
+          onClick={handleWhatsAppSend}
+          className="w-full bg-[#2A0826] hover:bg-[#3D0C37] active:bg-[#1C051A] text-[#F8C8D4] font-medium py-3.5 px-6 rounded-full flex items-center justify-center gap-2.5 text-sm sm:text-base shadow-xl transition-all duration-200 active:scale-95 cursor-pointer group"
+        >
+          <MessageCircle size={18} className="text-[#25D366] group-hover:scale-110 transition-transform" />
+          <span>Reply on WhatsApp</span>
+        </button>
+      </div>
+
+      <div className="mt-6 pt-4 border-t border-[#2A0826]/10 text-center">
+        <p className="text-[11px] text-[#2A0826]/60">
+          Private: encrypted on your phone, so only {hisName ? `${hisName}` : 'he'} can read it.
+        </p>
       </div>
     </div>
   );
