@@ -4,7 +4,8 @@ import { defaultAnniversaryData } from './types/anniversary';
 import { ROMANTIC_SONG_PRESETS } from './types/songs';
 import { AnniversaryTemplate } from './components/AnniversaryTemplate';
 import { createShortLinkOrFallback, loadGiftFromShortLinkOrUrl } from './utils/shortLinkAdapter';
-import { Edit3, Eye, Share2, Sparkles, Phone, Music, Plus, Check, Heart, BookOpen, Trash2, Loader2 } from 'lucide-react';
+import { Edit3, Eye, Share2, Phone, Music, Plus, Check, Heart, BookOpen, Trash2, Loader2 } from 'lucide-react';
+import lovelettLogo from './assets/logo.svg';
 
 export function App() {
   const [data, setData] = useState<AnniversaryData>(defaultAnniversaryData);
@@ -140,8 +141,9 @@ export function App() {
       {/* Top Floating Header & Nav */}
       <header className="sticky top-0 z-50 bg-[#2A0826]/90 backdrop-blur-md border-b border-[#4A163E] px-4 py-2.5 flex items-center justify-between shadow-lg">
         <div className="flex items-center gap-2">
-          <Sparkles className="text-[#E83D64]" size={18} />
-          <span className="font-script text-2xl font-bold text-[#F8C8D4]">Lovelett</span>
+          {/* Logo: icon-only on mobile, full logo on sm+ */}
+          <img src={lovelettLogo} alt="Lovelett" className="sm:hidden h-8 w-8 object-contain" />
+          <img src={lovelettLogo} alt="Lovelett" className="hidden sm:block h-9 w-auto" />
           <span className="hidden sm:inline text-[10px] uppercase font-semibold tracking-wider text-[#F8C8D4]/50 bg-[#3B1231] px-2 py-0.5 rounded-full border border-[#5E204E]">
             Anniversary Gift
           </span>
@@ -156,12 +158,12 @@ export function App() {
             {mode === 'edit' ? (
               <>
                 <Eye size={14} />
-                <span>View Full Page</span>
+                <span className="hidden sm:inline">View Full Page</span>
               </>
             ) : (
               <>
                 <Edit3 size={14} />
-                <span>Customize Page</span>
+                <span className="hidden sm:inline">Customize Page</span>
               </>
             )}
           </button>
@@ -175,22 +177,23 @@ export function App() {
             {isPackingGift ? (
               <>
                 <Loader2 size={14} className="animate-spin" />
-                <span>Packing Gift Link...</span>
+                <span className="hidden sm:inline">Packing Gift Link...</span>
               </>
             ) : copiedLink ? (
               <>
                 <Check size={14} />
-                <span>Gift Link Copied!</span>
+                <span className="hidden sm:inline">Gift Link Copied!</span>
               </>
             ) : (
               <>
                 <Share2 size={14} />
-                <span>Share Gift Link</span>
+                <span className="hidden sm:inline">Share Gift Link</span>
               </>
             )}
           </button>
         </div>
       </header>
+
 
       {/* Customizer View */}
       {mode === 'edit' ? (
