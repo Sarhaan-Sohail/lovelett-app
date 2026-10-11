@@ -140,14 +140,23 @@ export function App() {
     <div className="relative min-h-screen bg-[#230823]">
       {/* Top Floating Header & Nav */}
       <header className="sticky top-0 z-50 bg-[#2A0826]/90 backdrop-blur-md border-b border-[#4A163E] px-4 py-2.5 flex items-center justify-between shadow-lg">
-        <div className="flex items-center gap-2">
-          {/* Logo: icon-only on mobile, full logo on sm+ */}
-          <img src={lovelettLogo} alt="Lovelett" className="sm:hidden h-8 w-8 object-contain" />
-          <img src={lovelettLogo} alt="Lovelett" className="hidden sm:block h-9 w-auto" />
-          <span className="hidden sm:inline text-[10px] uppercase font-semibold tracking-wider text-[#F8C8D4]/50 bg-[#3B1231] px-2 py-0.5 rounded-full border border-[#5E204E]">
-            Anniversary Gift
-          </span>
-        </div>
+        <div className="flex min-w-0 items-center gap-2">
+  <img
+    src={lovelettLogo}
+    alt=""
+    aria-hidden="true"
+    className="h-8 w-8 shrink-0 object-contain"
+  />
+  <span
+    className="shrink-0 text-xl leading-none text-[#F8C8D4]"
+    style={{ fontFamily: "'Dancing Script', cursive", fontWeight: 600 }}
+  >
+    Lovelett
+  </span>
+  <span className="shrink-0 whitespace-nowrap rounded-full border border-[#5E204E] bg-[#3B1231] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#F8C8D4]/70 sm:text-[10px]">
+    Anniversary Gift
+  </span>
+</div>
 
         <div className="flex items-center gap-2">
           <button
